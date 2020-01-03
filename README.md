@@ -1,4 +1,4 @@
-# Spring Boot, Hibernate, REST, Ionic, JWT, S3, MySQL, MongoDB
+# Spring Boot, Hibernate, REST, JWT, S3, MySQL
 
 Implementar modelos de domínio
 Mapeamento objeto-relacional com JPA
