@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Entity
 @Table(name = "pedido")
@@ -65,6 +64,23 @@ public class Pedido implements Serializable {
             soma += itemPedido.getSubtotal();
         }
         return soma;
+    }
+
+    @Override
+    public String toString() {
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Número Pedido: ").append(id);
+        sb.append(", Instante: ").append(simpleDateFormat.format(instante));
+        sb.append(", Cliente: ").append(cliente.getNome());
+        sb.append(", Situação do Pagamento: ").append(pagamento.getEstadoPagamento().getStatus());
+        sb.append("\nDetalhes: \n");
+        for(ItemPedido itemPedido : itens){
+            sb.append(itemPedido.toString());
+        }
+        sb.append("Valor Total: ").append(numberFormat.format(getValorTotal()));
+        return sb.toString();
     }
 
     public Long getId() {

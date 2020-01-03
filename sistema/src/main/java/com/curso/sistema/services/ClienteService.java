@@ -11,6 +11,7 @@ import com.curso.sistema.services.exceptions.AuthorizationException;
 import com.curso.sistema.services.exceptions.DataIntegrityException;
 import com.curso.sistema.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,12 +26,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ClienteService {
+
+    @Value("${img.prefix.client.profile}")
+    private String prefix;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -40,11 +45,14 @@ public class ClienteService {
 
     private final S3Service s3Service;
 
-    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder passwordEncoder, S3Service s3Service) {
+    private final ImageService imageService;
+
+    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder passwordEncoder, S3Service s3Service, ImageService imageService) {
         this.clienteRepository = clienteRepository;
         this.enderecoRepository = enderecoRepository;
         this.passwordEncoder = passwordEncoder;
         this.s3Service = s3Service;
+        this.imageService = imageService;
     }
 
     public Cliente find(Long id) {
@@ -149,13 +157,12 @@ public class ClienteService {
             throw new AuthorizationException("Acesso negado");
         }
 
-        URI uri = s3Service.uploadFile(multipartFile);
+        BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
 
-        clienteAuthenticated.setImgUrl(uri.toString());
+        String fileName = prefix + clienteAuthenticated.getId() + ".jpg";
 
-        clienteRepository.save(clienteAuthenticated);
+        return s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
 
-        return uri;
     }
 
     private Cliente getClienteAuthenticated() {

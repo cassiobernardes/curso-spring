@@ -6,6 +6,8 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 @Entity
@@ -48,6 +50,21 @@ public class ItemPedido implements Serializable {
 
     public Double getSubtotal(){
         return (preco - desconto) * quantidade;
+    }
+
+    @Override
+    public String toString() {
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getProduto().getNome());
+        sb.append(", Qtde: ");
+        sb.append(quantidade);
+        sb.append(", Preço Unitário: ");
+        sb.append(numberFormat.format(preco));
+        sb.append(", Subtotal: ");
+        sb.append(numberFormat.format(getSubtotal()));
+        sb.append("\n");
+        return sb.toString();
     }
 
     @JsonIgnore

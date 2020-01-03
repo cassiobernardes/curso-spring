@@ -48,8 +48,6 @@ public class Cliente implements Serializable, UserDetails {
     @Column(name = "perfil")
     private Set<Integer> perfis;
 
-    private String imgUrl;
-
     public Cliente() {
         this.enderecos = new HashSet<>();
         this.telefones = new HashSet<>();
@@ -208,11 +206,4 @@ public class Cliente implements Serializable, UserDetails {
         return true;
     }
 
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
-    }
 }

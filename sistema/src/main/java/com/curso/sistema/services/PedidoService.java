@@ -11,6 +11,7 @@ import com.curso.sistema.respositories.PedidoRepository;
 import com.curso.sistema.respositories.ProdutoRepository;
 import com.curso.sistema.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +30,20 @@ public class PedidoService {
 
     private final ItemPedidoRepository itemPedidoRepository;
 
+    private final ClienteService clienteService;
+
+    private final SmtpEmailService smtpEmailService;
+
     public PedidoService(PedidoRepository pedidoRepository,
                          PagamentoRepository pagamentoRepository,
                          ProdutoRepository produtoRepository,
-                         ItemPedidoRepository itemPedidoRepository) {
+                         ItemPedidoRepository itemPedidoRepository, ClienteService clienteService, SmtpEmailService smtpEmailService) {
         this.pedidoRepository = pedidoRepository;
         this.pagamentoRepository = pagamentoRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
+        this.clienteService = clienteService;
+        this.smtpEmailService = smtpEmailService;
     }
 
     public Pedido find(Long id) {
@@ -65,17 +72,21 @@ public class PedidoService {
             pagamentoBoleto.setDataVencimento(calendar.getTime());
         }
 
+        pedido.setCliente(clienteService.find(pedido.getCliente().getId()));
+
         pedido = pedidoRepository.save(pedido);
         pagamentoRepository.save(pedido.getPagamento());
 
         for(ItemPedido itemPedido : pedido.getItens()){
             itemPedido.setDesconto((double) 0);
             produto = produtoRepository.findProdutoById(itemPedido.getProduto().getId());
+            itemPedido.setProduto(produto);
             itemPedido.setPreco(produto.getPreco());
             itemPedido.setPedido(pedido);
         }
 
         itemPedidoRepository.saveAll(pedido.getItens());
+        smtpEmailService.sendEmail(pedido);
         return pedido;
     }
 }
